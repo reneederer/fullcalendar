@@ -26,7 +26,7 @@ let germanLocale: obj = jsNative
 
 
 type CalendarEvent = {
-    Id : int
+    Id : int option
     Title: string
     Start: string
     End: string

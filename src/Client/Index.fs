@@ -9,6 +9,7 @@ open Feliz
 open type Feliz.Html
 open FullCalendarBindings
 open Fable.Core.JS
+open Fable.SimpleJson
 
 type Model = {
     Events: CalendarEvent list
@@ -21,8 +22,8 @@ type Msg =
 
 let init () : Model * Cmd<Msg> =
     let sampleEvents =
-      [ { Id = 3; Title = "Team Meeting"; Start = "2025-05-22"; End = "2025-05-22" }
-        { Id = 4; Title = "Conference"; Start = "2025-05-23"; End = "2025-05-25" }
+      [ { Id = Some 3; Title = "Team Meeting"; Start = "2025-05-22"; End = "2025-05-22" }
+        { Id = Some 4; Title = "Conference"; Start = "2025-05-23"; End = "2025-05-25" }
       ]
     { Events = sampleEvents }, Cmd.none
 
@@ -39,8 +40,12 @@ let CalendarWithDraggable (model: Model) =
                 createNew Draggable
                     (Browser.Dom.document.getElementById("external-events"),
                         createObj [
-                            "itemSelector" ==> "#my-calendar"
-                            "eventData" ==> (fun (_: obj) -> createObj [ "title" ==> "My Calendar123" ])
+                            "itemSelector" ==> ".draggable"
+                            "eventData" ==>
+                                fun (el: obj) ->
+                                    console.log el
+                                    let json = el?getAttribute "data-event"
+                                    createObj [ "title" ==> $"""{json}""" ]
                         ])
             None
         )
@@ -78,6 +83,7 @@ let view model dispatch =
                 Html.h1 [
                     prop.text "My Calendar"
                     prop.id "my-calendar"
+                    prop.classes [ "draggable" ]
                     prop.draggable true
                     prop.style [
                         style.cursor.pointer
@@ -87,6 +93,20 @@ let view model dispatch =
                         style.display.inlineBlock
                     ]
                     prop.custom("data-event", """{ "title": "My Calendar" }""")
+                ]
+                Html.h1 [
+                    prop.text "My Calendar2"
+                    prop.id "my-calendar2"
+                    prop.classes ["draggable"]
+                    prop.draggable true
+                    prop.style [
+                        style.cursor.pointer
+                        style.userSelect.none
+                        style.padding 10
+                        style.backgroundColor "lightblue"
+                        style.display.inlineBlock
+                    ]
+                    prop.custom("data-event", """{ "title": "My Calendar2" }""")
                 ]
             ]
         ]
