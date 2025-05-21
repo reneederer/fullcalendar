@@ -26,7 +26,18 @@ type Msg =
 
 let init () : Model * Cmd<Msg> =
     let events =
-      [ 3, { Title = "Team Meeting"; Start = DateTime.Parse "2025-05-22T11:00:00"; End = DateTime.Parse "2025-05-22T13:00:00" }
+      [ 3,
+          { Title = "Team Meeting"
+            Start = DateTime.Parse "2025-05-22T11:00:00"
+            End = DateTime.Parse "2025-05-22T13:00:00"
+            ParentId = None
+          }
+        4,
+          { Title = "Team Meeting"
+            Start = DateTime.Parse "2025-05-22T11:00:00"
+            End = DateTime.Parse "2025-05-22T13:00:00"
+            ParentId = None
+          }
       ] |> Map.ofList
     { Events = events }, Cmd.none
 
@@ -37,9 +48,9 @@ let update (msg: Msg) (model: Model) : Model * Cmd<Msg> =
         window.alert (SimpleJson.stringify event)
         model, Cmd.none
     | MoveEvent (event, delta) ->
-        window.alert (SimpleJson.stringify event)
-        window.alert (SimpleJson.stringify delta.TotalDays)
-        window.alert (SimpleJson.stringify delta.TotalMinutes)
+        //window.alert (SimpleJson.stringify event)
+        //window.alert (SimpleJson.stringify delta.TotalDays)
+        //window.alert (SimpleJson.stringify delta.TotalMinutes)
         model, Cmd.none
     | EditEvent eventId ->
         window.alert eventId
@@ -73,6 +84,7 @@ let CalendarWithDraggable (model: Model) dispatch =
                             { Title = draggedEl?getAttribute "data-event-title"
                               Start = DateTime.Parse info?dateStr
                               End = DateTime.Parse info?dateStr
+                              ParentId = None
                             }
                         dispatch <|
                             CreateEvent event

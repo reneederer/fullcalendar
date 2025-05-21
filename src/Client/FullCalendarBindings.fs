@@ -6,6 +6,8 @@ open Fable.React
 open Fable.Core.JS
 open System
 open FSharp.Collections
+open Feliz
+open type Feliz.Html
 
 [<ImportDefault("@fullcalendar/react")>]
 let FullCalendarComponent: obj = jsNative
@@ -28,11 +30,12 @@ let germanLocale: obj = jsNative
 type EventId = int
 
 
-type CalendarEvent = {
-    Title: string
+type CalendarEvent =
+  { Title: string
     Start: DateTime
     End: DateTime
-}
+    ParentId : EventId option
+  }
 
 type CalendarSetup =
     { Events : Map<EventId, CalendarEvent>
@@ -43,16 +46,50 @@ type CalendarSetup =
       ClickEventF : obj -> unit
     }
 
+let eventContentRenderer =
+    fun (arg: obj) ->
+        let title: string = arg?event?title
+        let isSub: bool = not (isNullOrUndefined (arg?event?extendedProps?parentId))
+
+        // Adjust visual indentation and style
+        let content =
+            if isSub then
+                Html.div [
+                    prop.style [
+                        style.marginLeft 12
+                        style.borderLeft (2, borderStyle.solid, "green")
+                        style.paddingLeft 8
+                        style.color "green"
+                        style.fontSize (length.em 0.9)
+                    ]
+                    prop.text title
+                ]
+            else
+                Html.div [
+                    Html.strong [
+                        prop.style [ style.fontSize (length.em 1) ]
+                        prop.title "dein tooltip"
+                        prop.text title
+                    ]
+                ]
+
+        content
+
+
 
 let calendarComponent (setup : CalendarSetup) =
     let calendarEvents =
         setup.Events
         |> Map.map (fun eventId event ->
             createObj [
+                "id" ==> eventId
                 "title" ==> event.Title
                 "start" ==>  event.Start.ToString("o")
                 "end" ==> event.End.ToString("o")
-                "id" ==> eventId
+                "parentId" ==>
+                    match event.ParentId with
+                    | Some parentId -> parentId
+                    | None -> undefined
             ])
         |> Map.values
         |> Seq.toArray
@@ -80,6 +117,7 @@ let calendarComponent (setup : CalendarSetup) =
                 console.log($"Click ({publicId}):", info)
                 setup.ClickEventF publicId |> ignore
             )
+            "eventContent" ==> eventContentRenderer
             "locale" ==> "de"
             "locales" ==> [| germanLocale |]
             "slotMinTime" ==> "06:00"
