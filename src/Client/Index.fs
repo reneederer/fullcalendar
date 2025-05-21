@@ -10,44 +10,56 @@ open type Feliz.Html
 open FullCalendarBindings
 open Fable.Core.JS
 open Fable.SimpleJson
+open Browser
+open System
+open FSharp.Collections
 
 type Model = {
-    Events: CalendarEvent list
+    Events: Map<EventId, CalendarEvent>
 }
 
 type Msg =
     | NoOp
-    | CreateEvent of obj
-    | MoveEvent of obj
+    | CreateEvent of CalendarEvent
+    | MoveEvent of EventId * TimeSpan
+    | EditEvent of EventId
 
 let init () : Model * Cmd<Msg> =
-    let sampleEvents =
-      [ { Id = Some 3; Title = "Team Meeting"; Start = "2025-05-22"; End = "2025-05-22" }
-        { Id = Some 4; Title = "Conference"; Start = "2025-05-23"; End = "2025-05-25" }
-      ]
-    { Events = sampleEvents }, Cmd.none
+    let events =
+      [ 3, { Title = "Team Meeting"; Start = DateTime.Parse "2025-05-22T11:00:00"; End = DateTime.Parse "2025-05-22T13:00:00" }
+      ] |> Map.ofList
+    { Events = events }, Cmd.none
 
 let update (msg: Msg) (model: Model) : Model * Cmd<Msg> =
     match msg with
     | NoOp -> model, Cmd.none
+    | CreateEvent event ->
+        window.alert (SimpleJson.stringify event)
+        model, Cmd.none
+    | MoveEvent (event, delta) ->
+        window.alert (SimpleJson.stringify event)
+        window.alert (SimpleJson.stringify delta.TotalDays)
+        window.alert (SimpleJson.stringify delta.TotalMinutes)
+        model, Cmd.none
+    | EditEvent eventId ->
+        window.alert eventId
+        model, Cmd.none
 
 
 
-let CalendarWithDraggable (model: Model) =
+let CalendarWithDraggable (model: Model) dispatch =
     React.functionComponent(fun () ->
         React.useEffectOnce(fun () ->
-            let draggable =
-                createNew Draggable
-                    (Browser.Dom.document.getElementById("external-events"),
-                        createObj [
-                            "itemSelector" ==> ".draggable"
-                            "eventData" ==>
-                                fun (el: obj) ->
-                                    console.log el
-                                    let json = el?getAttribute "data-event"
-                                    createObj [ "title" ==> $"""{json}""" ]
-                        ])
-            None
+            createNew Draggable
+                (Browser.Dom.document.getElementById("external-events"),
+                    createObj [
+                        "itemSelector" ==> ".draggable"
+                        "eventData" ==>
+                            fun (el: obj) ->
+                                console.log el
+                                createObj [ "title" ==> $"""{el?getAttribute "data-event-title"} ({el?getAttribute "data-event-typ"})""" ]
+                    ])
+            |> ignore
         )
 
         Html.div [
@@ -56,10 +68,23 @@ let CalendarWithDraggable (model: Model) =
                   CreateEventF =
                     (fun info ->
                         console.log($"CreateEvent", info)
+                        let draggedEl = info?draggedEl
+                        let event =
+                            { Title = draggedEl?getAttribute "data-event-title"
+                              Start = DateTime.Parse info?dateStr
+                              End = DateTime.Parse info?dateStr
+                            }
+                        dispatch <|
+                            CreateEvent event
                     )
                   MoveEventF =
                     (fun info ->
                         console.log($"MoveEvent", info)
+                        dispatch <|
+                            MoveEvent
+                                ( info?event?_def?publicId,
+                                  (TimeSpan.FromMilliseconds info?delta?milliseconds).Add(TimeSpan.FromDays info?delta?days)
+                                )
                     )
                   DeleteEventF =
                     (fun info ->
@@ -68,6 +93,10 @@ let CalendarWithDraggable (model: Model) =
                   EditEventF =
                     (fun info ->
                         console.log($"EditEvent", info)
+                    )
+                  ClickEventF =
+                    (fun info ->
+                        console.log($"ClickEvent", info)
                     )
                 }
         ]
@@ -92,7 +121,8 @@ let view model dispatch =
                         style.backgroundColor "lightblue"
                         style.display.inlineBlock
                     ]
-                    prop.custom("data-event", """{ "title": "My Calendar" }""")
+                    prop.custom("data-event-title", """My Calendar""")
+                    prop.custom("data-event-typ", """Investitionskosten""")
                 ]
                 Html.h1 [
                     prop.text "My Calendar2"
@@ -106,9 +136,10 @@ let view model dispatch =
                         style.backgroundColor "lightblue"
                         style.display.inlineBlock
                     ]
-                    prop.custom("data-event", """{ "title": "My Calendar2" }""")
+                    prop.custom("data-event-title", """My Calendar2""")
+                    prop.custom("data-event-typ", """Pflegeleistung""")
                 ]
             ]
         ]
-        CalendarWithDraggable model ()
+        CalendarWithDraggable model dispatch ()
       ]
