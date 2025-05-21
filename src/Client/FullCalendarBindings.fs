@@ -14,7 +14,7 @@ let dayGridPlugin: obj = jsNative
 let interactionPlugin: obj = jsNative
 
 [<Import("Draggable", "@fullcalendar/interaction")>]
-let Draggable: obj = jsNative
+let Draggable: obj -> obj = jsNative
 
 [<ImportDefault("@fullcalendar/timegrid")>]
 let timeGridPlugin: obj = jsNative

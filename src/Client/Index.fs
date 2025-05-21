@@ -72,6 +72,7 @@ let calendarComponent (events: CalendarEvent list) =
     ReactBindings.React.createElement(FullCalendarComponent, calendarProps, [])
 
 let view model dispatch =
+    
     let onDragStart (ev: Browser.Types.DragEvent) =
         ev.dataTransfer.setData("text/plain", "My Calendar Drag")
 
