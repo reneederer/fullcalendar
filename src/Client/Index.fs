@@ -71,41 +71,47 @@ let calendarComponent (events: CalendarEvent list) =
 
     ReactBindings.React.createElement(FullCalendarComponent, calendarProps, [])
 
+
+let CalendarWithDraggable (props: {| model: Model |}) =
+    React.functionComponent(fun () ->
+
+        React.useEffectOnce(fun () ->
+            let draggable =
+                createNew Draggable
+                    (Browser.Dom.document.getElementById("external-events"),
+                        createObj [
+                            "itemSelector" ==> "#my-calendar"
+                            "eventData" ==> (fun (_: obj) -> createObj [ "title" ==> "My Calendar" ])
+                        ])
+            None
+        )
+
+        Html.div [
+            calendarComponent props.model.Events
+        ]
+    )
+
+
+
 let view model dispatch =
-    
-    let onDragStart (ev: Browser.Types.DragEvent) =
-        ev.dataTransfer.setData("text/plain", "My Calendar Drag")
-
-        // Create a transparent 1x1 pixel canvas to use as drag image
-        let canvas = Browser.Dom.document.createElement("canvas") :?> Browser.Types.HTMLCanvasElement
-        canvas.width <- 1
-        canvas.height <- 1
-        let ctx = canvas.getContext_2d()
-        ctx.fillStyle <- U3.Case1 "rgba(0,0,0,0)"
-        ctx.fillRect(0., 0., 1., 1.)
-
-        ev.dataTransfer.setDragImage(canvas, 0, 0)
-
-        printfn "Drag started!"
-
-    let onDragEnd (ev: Browser.Types.DragEvent) =
-        printfn "Drag ended!"
-
-    div
-      [ div [
-            h1 [
-                prop.text "My Calendar"
-                prop.draggable true
-                prop.onDragStart onDragStart
-                prop.onDragEnd onDragEnd
-                prop.style [
-                    style.cursor.pointer
-                    style.userSelect.none
-                    style.padding 10
-                    style.backgroundColor "lightblue"
-                    style.display.inlineBlock
+    React.fragment
+      [ Html.div [
+            prop.id "external-events"
+            prop.children [
+                Html.h1 [
+                    prop.text "My Calendar"
+                    prop.id "my-calendar"
+                    prop.draggable true
+                    prop.style [
+                        style.cursor.pointer
+                        style.userSelect.none
+                        style.padding 10
+                        style.backgroundColor "lightblue"
+                        style.display.inlineBlock
+                    ]
+                    prop.custom("data-event", """{ "title": "My Calendar" }""")
                 ]
             ]
         ]
-        calendarComponent model.Events
+        CalendarWithDraggable {| model = model |} ()
       ]
