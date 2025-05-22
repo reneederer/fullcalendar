@@ -44,10 +44,9 @@ Target.create "Azure" (fun _ ->
 
     deployment |> Deploy.execute "SAFE-App" Deploy.NoParameters |> ignore)
 
-Target.create "Build" (fun _ ->
-    run dotnet [ "build"; "Application.sln" ] "."
+Target.create "Build" (fun _ -> run dotnet [ "build"; "Application.sln" ] "."
 
-    )
+)
 
 Target.create "Run" (fun _ ->
     [
@@ -60,8 +59,7 @@ Target.create "RunTestsHeadless" (fun _ ->
     run dotnet [ "run" ] serverTestsPath
     run npm [ "install" ] clientTestsPath
     run dotnet [ "fable"; "-o"; "output" ] clientTestsPath
-    run npx [ "mocha"; "output" ] clientTestsPath
-)
+    run npx [ "mocha"; "output" ] clientTestsPath)
 
 Target.create "WatchRunTests" (fun _ ->
     [
@@ -74,13 +72,14 @@ Target.create "Format" (fun _ -> run dotnet [ "fantomas"; "." ] ".")
 
 open Fake.Core.TargetOperators
 
-let dependencies = [
-    "Clean" ==> "RestoreClientDependencies" ==> "Bundle" ==> "Azure"
-    "Clean" ==> "RestoreClientDependencies" ==> "Build" ==> "Run"
+let dependencies =
+    [
+        "Clean" ==> "RestoreClientDependencies" ==> "Bundle" ==> "Azure"
+        "Clean" ==> "RestoreClientDependencies" ==> "Build" ==> "Run"
 
-    "RestoreClientDependencies" ==> "Build" ==> "RunTestsHeadless"
-    "RestoreClientDependencies" ==> "Build" ==> "WatchRunTests"
-]
+        "RestoreClientDependencies" ==> "Build" ==> "RunTestsHeadless"
+        "RestoreClientDependencies" ==> "Build" ==> "WatchRunTests"
+    ]
 
 [<EntryPoint>]
 let main args = runOrDefault args

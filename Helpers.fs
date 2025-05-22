@@ -12,16 +12,17 @@ module Proc =
 
         let locker = obj ()
 
-        let colors = [|
-            ConsoleColor.Blue
-            ConsoleColor.Yellow
-            ConsoleColor.Magenta
-            ConsoleColor.Cyan
-            ConsoleColor.DarkBlue
-            ConsoleColor.DarkYellow
-            ConsoleColor.DarkMagenta
-            ConsoleColor.DarkCyan
-        |]
+        let colors =
+            [|
+                ConsoleColor.Blue
+                ConsoleColor.Yellow
+                ConsoleColor.Magenta
+                ConsoleColor.Cyan
+                ConsoleColor.DarkBlue
+                ConsoleColor.DarkYellow
+                ConsoleColor.DarkMagenta
+                ConsoleColor.DarkCyan
+            |]
 
         let print color (colored: string) (line: string) =
             lock locker (fun () ->
