@@ -54,17 +54,16 @@ let eventContentRenderer (arg : obj) =
     let content =
         if isSub then
             Html.div
-                [
-                    prop.style
-                        [
-                            style.marginLeft 12
-                            style.borderLeft (2, borderStyle.solid, "green")
-                            style.paddingLeft 8
-                            style.color "green"
-                            style.fontSize (length.em 0.9)
-                        ]
-                    prop.text title
-                ]
+              [ prop.style
+                  [
+                      style.marginLeft 12
+                      style.borderLeft (2, borderStyle.solid, "green")
+                      style.paddingLeft 8
+                      style.color "green"
+                      style.fontSize (length.em 0.9)
+                  ]
+                prop.text title
+              ]
         else
             console.log arg
             Html.div
